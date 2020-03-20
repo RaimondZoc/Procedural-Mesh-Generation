@@ -8,6 +8,10 @@ public class Grid : MonoBehaviour
 {
     [SerializeField]
     private int xSize, ySize;
+    [SerializeField]
+    private float generateDelaySeconds;
+    [SerializeField]
+    private bool ShowVertices;
 
     private Mesh mesh;
     private Vector3[] gridVertices;
@@ -23,14 +27,17 @@ public class Grid : MonoBehaviour
     {
 
         gridVertices = new Vector3[(xSize + 1) * (ySize + 1)];
+        Vector2[] uv = new Vector2[gridVertices.Length];
         for (int i = 0, y = 0; y <= ySize; y++)
             for (int x = 0; x <= xSize; x++, i++)
             {
                 gridVertices[i] = new Vector3(x, y);
-                yield return new WaitForSeconds(0.1f);
+                uv[i] = new Vector2((float) x/ xSize, (float) y / ySize);
+                yield return new WaitForSeconds(generateDelaySeconds);
             }
 
         mesh.vertices = gridVertices;
+        mesh.uv = uv;
 
         int[] triangles = new int[6 * xSize * ySize];
         for (int ti = 0, y = 0; y < ySize; y++)
@@ -41,18 +48,21 @@ public class Grid : MonoBehaviour
             triangles[ti + 2] = triangles[ti + 3] = y * (xSize + 1) + x + 1;
             triangles[ti + 5] = y * (xSize + 1) + xSize + (x + 2);
             mesh.triangles = triangles;
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(generateDelaySeconds);
         }
         Debug.Log(mesh.triangles.Length);
-
+        mesh.RecalculateNormals();
         yield return 0;
     }
 
     void OnDrawGizmos()
     {
-        if (gridVertices != null)
-            for (int i = 0; i < gridVertices.Length; i++)
-        Gizmos.DrawSphere(gridVertices[i], 0.1f);
+        if(ShowVertices == true)
+        {
+            if (gridVertices != null)
+                for (int i = 0; i < gridVertices.Length; i++)
+                    Gizmos.DrawSphere(gridVertices[i], 0.1f);
+        }
     }
 
 
